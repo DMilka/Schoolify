@@ -12,12 +12,12 @@ class DialogTemplate extends Component {
   }
 
   render() {
-    const { open, title, content, actionButtons } = this.props;
+    const { open, onClose, title, content, actionButtons, ...rest } = this.props;
     return (
-      <Dialog open={open}>
+      <Dialog open={open} onClose={onClose} {...rest}>
         {title ? <DialogTitle>{title}</DialogTitle> : null}
-        {content}
-        <DialogActions>{actionButtons}</DialogActions>
+        {content ? <DialogContent>{content}</DialogContent> : null}
+        {actionButtons ? <DialogActions>{actionButtons}</DialogActions> : null}
       </Dialog>
     );
   }

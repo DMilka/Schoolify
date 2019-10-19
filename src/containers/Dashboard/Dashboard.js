@@ -17,6 +17,8 @@ import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
+import DialogTemplate from '../../components/Dialog/DialogTemplate';
+import NewModuleForm from '../../components/Forms/Module/NewModuleForm';
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
@@ -60,7 +62,7 @@ class Dashboard extends Component {
     return (
       <React.Fragment>
         <Grid container justify="center" className={classes.Dashboard}>
-          <Grid item xs={12} md={12} lg={1}>
+          <Grid item xs={12} md={12} lg={2}>
             <Button variant="contained" color="primary" onClick={this.addModuleToggleHandler}>
               Dodaj moduł
             </Button>
@@ -101,23 +103,31 @@ class Dashboard extends Component {
             </Paper>
           </Grid>
         </Grid>
-
-        <Dialog open={this.state.open} TransitionComponent={Transition} keepMounted onClose={this.addModuleToggleHandler}>
-          <DialogTitle>{'Dodaj nowy moduł'}</DialogTitle>
-          <DialogContent></DialogContent>
-        </Dialog>
-
-        <Dialog open={this.state.delete} TransitionComponent={Transition} keepMounted onClose={this.confirmDeleteHandler}>
-          <DialogTitle id="alert-dialog-slide-title">{'Czy napewno usunąć'}</DialogTitle>
-          <DialogActions>
-            <Button onClick={this.confirmDeleteHandler} variant={'contained'} color="secondary">
-              Tak
-            </Button>
-            <Button onClick={this.confirmDeleteHandler} variant={'contained'} color="primary">
-              Nie
-            </Button>
-          </DialogActions>
-        </Dialog>
+        <DialogTemplate
+          open={this.state.open}
+          onClose={this.addModuleToggleHandler}
+          TransitionComponent={Transition}
+          keepMounted
+          title={'Dodaj nowy moduł'}
+          content={<NewModuleForm />}
+        />
+        <DialogTemplate
+          open={this.state.delete}
+          TransitionComponent={Transition}
+          keepMounted
+          onClose={this.confirmDeleteHandler}
+          title={'Czy napewno usunąć'}
+          actionButtons={
+            <React.Fragment>
+              <Button onClick={this.confirmDeleteHandler} variant={'contained'} color="secondary">
+                Tak
+              </Button>
+              <Button onClick={this.confirmDeleteHandler} variant={'contained'} color="primary">
+                Nie
+              </Button>
+            </React.Fragment>
+          }
+        />
       </React.Fragment>
     );
   }
