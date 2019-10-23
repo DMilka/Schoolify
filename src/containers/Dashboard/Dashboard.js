@@ -19,6 +19,7 @@ import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import DialogTemplate from '../../components/Dialog/DialogTemplate';
 import NewModuleForm from '../../components/Forms/Module/NewModuleForm';
+import { Redirect, withRouter } from 'react-router-dom';
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
@@ -58,6 +59,10 @@ class Dashboard extends Component {
     });
   };
 
+  showModule = () => {
+    this.props.history.push('/marks');
+  };
+
   render() {
     return (
       <React.Fragment>
@@ -90,7 +95,7 @@ class Dashboard extends Component {
                       <TableCell align="center"></TableCell>
                       <TableCell align="center">
                         <IconButton variant="contained" color="primary">
-                          <VisibilityRoundedIcon />
+                          <VisibilityRoundedIcon onClick={this.showModule} />
                         </IconButton>
                         <IconButton variant="contained" color="secondary" onClick={this.confirmDeleteHandler}>
                           <DeleteIcon />
