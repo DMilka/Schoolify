@@ -1,3 +1,13 @@
 .nav {
   width: 100%;
 }
+
+.link {
+  color: #fff;
+  text-decoration: none;
+}
+
+.active {
+  text-decoration: underline;
+  color: coral;
+}

@@ -21,40 +21,38 @@ const selectLoop = (items) => {
 };
 
 const selectInputType = (item) => {
-  const formControlProps = {};
-
   switch (item.type) {
     case 'email':
       return (
-        <FormControl key={item.id} {...formControlProps}>
+        <FormControl key={item.id} {...item.formcontrolprops}>
           <TextField {...item} />
         </FormControl>
       );
     case 'text':
       return (
-        <FormControl key={item.id} {...formControlProps}>
+        <FormControl key={item.id} {...item.formcontrolprops}>
           <TextField {...item} />
         </FormControl>
       );
     case 'password':
       return (
-        <FormControl key={item.id} {...formControlProps}>
+        <FormControl key={item.id} {...item.formcontrolprops}>
           <TextField {...item} />
         </FormControl>
       );
     case 'radio':
-      return <FormControlLabel {...formControlProps} key={item.id} control={<Radio {...item} />} label={item.label} />;
+      return <FormControlLabel {...item.formcontrolprops} key={item.id} control={<Radio {...item} />} label={item.label} />;
     case 'checkbox':
-      return <FormControlLabel {...formControlProps} key={item.id} control={<Checkbox {...item} />} label={item.label} />;
+      return <FormControlLabel {...item.formcontrolprops} key={item.id} control={<Checkbox {...item} />} label={item.label} />;
     case 'select':
       return (
-        <Select key={item.id} {...formControlProps} value={item.value} {...item}>
+        <Select key={item.id} {...item.formcontrolprops} value={item.value} {...item}>
           {selectLoop(item.items)}
         </Select>
       );
     default:
       return (
-        <FormControl key={item.id} {...formControlProps}>
+        <FormControl key={item.id} {...item.formcontrolprops}>
           <TextField {...item} />
         </FormControl>
       );
