@@ -20,23 +20,10 @@ class JournalTable extends Component {
           <TableHead>
             <TableRow>
               <TableCell align="center">Imię i nazwisko</TableCell>
-              <TableCell align="center">Sprawdzian</TableCell>
-              <TableCell align="center">Kartkówka</TableCell>
-              <TableCell align="center">Sprawdzian</TableCell>
-              <TableCell align="center">Odp. ustna</TableCell>
+              {this.props.headers}
             </TableRow>
           </TableHead>
-          <TableBody>
-            <TableRow>
-              <TableCell component="th" scope="row">
-                Jan Kowalski
-              </TableCell>
-              <TableCell align="center">4</TableCell>
-              <TableCell align="center">4</TableCell>
-              <TableCell align="center">3</TableCell>
-              <TableCell align="center">5</TableCell>
-            </TableRow>
-          </TableBody>
+          <TableBody>{this.props.body}</TableBody>
         </Table>
       </Paper>
     );
