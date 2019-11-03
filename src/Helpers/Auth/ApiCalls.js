@@ -1,6 +1,17 @@
 import axios from 'axios';
 
-const post = () => {};
+export const post = (url, headersObj, data, callback) => {
+  axios
+    .post(url, data, {
+      headers: headersObj,
+    })
+    .then((response) => {
+      callback(response);
+    })
+    .catch((error) => {
+      console.log(error);
+    });
+};
 
 export const get = (url, paramsObj, headersObj, callback) => {
   axios

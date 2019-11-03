@@ -35,6 +35,7 @@ class LoginForm extends Component {
     console.log('Login');
     this.props.history.push('/dashboard');
   };
+
   render() {
     return (
       <form autoComplete="off" onChange={this.fieldChangeHandler}>
