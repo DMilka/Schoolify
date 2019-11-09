@@ -20,20 +20,12 @@ import DialogTitle from '@material-ui/core/DialogTitle';
 import DialogTemplate from '../../components/Dialog/DialogTemplate';
 import NewModuleForm from '../../components/Forms/Module/NewModuleForm';
 import { Redirect, withRouter } from 'react-router-dom';
+import { get, post } from '../../Helpers/Auth/ApiCalls';
+import { moment } from 'moment';
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
 });
-
-function createData(name, calories, fat, carbs, protein) {
-  return { name, calories, fat, carbs, protein };
-}
-
-const rows = [
-  createData('Frozen yoghurt', 159, 6.0, 24, 4.0),
-  createData('Ice cream sandwich', 237, 9.0, 37, 4.3),
-  createData('Eclair', 262, 16.0, 24, 6.0),
-];
 
 class Dashboard extends Component {
   constructor(props) {
@@ -42,7 +34,49 @@ class Dashboard extends Component {
     this.state = {
       open: false,
       delete: false,
+      loading: true,
+      errorMsg: null,
+      successMsg: null,
+      warningMsg: null,
+      data: null,
+      redirectToMarks: false,
     };
+  }
+
+  componentDidMount() {
+    //  get = (url, paramsObj, headersObj, callback, callbackError);
+    const userId = localStorage.getItem('s_userid');
+
+    if (!userId) {
+      this.setState({
+        ...this.state,
+        errorMsg: 'Wystąpił nieoczekiwany błąd.',
+        loading: false,
+      });
+    } else {
+      get(
+        'http://localhost:8000/api/modules?teacher_id=' + userId,
+        null,
+        null,
+        (data) => {
+          console.log(data);
+          this.setState({
+            ...this.state,
+            errorMsg: null,
+            loading: false,
+            data: data,
+          });
+        },
+        (error) => {
+          console.log(error);
+          this.setState({
+            ...this.state,
+            errorMsg: 'Wystąpił nieoczekiwany błąd.',
+            loading: false,
+          });
+        }
+      );
+    }
   }
 
   addModuleToggleHandler = () => {
@@ -52,18 +86,33 @@ class Dashboard extends Component {
     });
   };
 
-  confirmDeleteHandler = () => {
+  confirmDeleteHandler = (id) => {
     this.setState({
       ...this.state,
       delete: !this.state.delete,
     });
   };
 
-  showModule = () => {
-    this.props.history.push('/marks');
+  showModule = (id) => {
+    localStorage.setItem('s_moduleId', id);
+    this.setState({
+      ...this.state,
+      redirectToMarks: true,
+      moduleId: id,
+    });
   };
 
   render() {
+    if (this.state.redirectToMarks) {
+      return (
+        <Redirect
+          to={{
+            pathname: '/module',
+            state: { moduleId: this.state.moduleId },
+          }}
+        />
+      );
+    }
     return (
       <React.Fragment>
         <Grid container justify="center" className={classes.Dashboard}>
@@ -74,39 +123,43 @@ class Dashboard extends Component {
           </Grid>
         </Grid>
         <Grid container justify="center" className={classes.Dashboard}>
-          <Grid item xs={12} md={12} lg={6}>
-            <Paper elevation={5}>
-              <Table aria-label="caption table">
-                <TableHead>
-                  <TableRow>
-                    <TableCell align="center">Moduł/Przedmiot</TableCell>
-                    <TableCell align="center">Grupa/Klasa</TableCell>
-                    <TableCell align="center">Data rozpoczęcia</TableCell>
-                    <TableCell align="center">Data zakończenia</TableCell>
-                    <TableCell align="center">Akcje</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {rows.map((row) => (
-                    <TableRow key={row.name}>
-                      <TableCell align="center"></TableCell>
-                      <TableCell align="center"></TableCell>
-                      <TableCell align="center"></TableCell>
-                      <TableCell align="center"></TableCell>
-                      <TableCell align="center">
-                        <IconButton variant="contained" color="primary">
-                          <VisibilityRoundedIcon onClick={this.showModule} />
-                        </IconButton>
-                        <IconButton variant="contained" color="secondary" onClick={this.confirmDeleteHandler}>
-                          <DeleteIcon />
-                        </IconButton>
-                      </TableCell>
+          {this.state.loading ? (
+            <div>Loading...</div>
+          ) : (
+            <Grid item xs={12} md={12} lg={6}>
+              <Paper elevation={5}>
+                <Table aria-label="caption table">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell align="center">Moduł/Przedmiot</TableCell>
+                      <TableCell align="center">Grupa/Klasa</TableCell>
+                      <TableCell align="center">Data rozpoczęcia</TableCell>
+                      <TableCell align="center">Data zakończenia</TableCell>
+                      <TableCell align="center">Akcje</TableCell>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </Paper>
-          </Grid>
+                  </TableHead>
+                  <TableBody>
+                    {this.state.data['hydra:member'].map((row) => (
+                      <TableRow key={row.id}>
+                        <TableCell align="center">{row.name}</TableCell>
+                        <TableCell align="center">{row.className}</TableCell>
+                        <TableCell align="center">{new Date(row.startDate).toDateString()}</TableCell>
+                        <TableCell align="center">{row.endDate ? row.endDate : 'Trwa'}</TableCell>
+                        <TableCell align="center">
+                          <IconButton variant="contained" color="primary" onClick={() => this.showModule(row.id)}>
+                            <VisibilityRoundedIcon />
+                          </IconButton>
+                          <IconButton variant="contained" color="secondary" onClick={() => this.confirmDeleteHandler(row.id)}>
+                            <DeleteIcon />
+                          </IconButton>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </Paper>
+            </Grid>
+          )}
         </Grid>
         <DialogTemplate
           open={this.state.open}

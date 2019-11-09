@@ -25,9 +25,13 @@ function TabPanel(props) {
 }
 
 class AuthForm extends Component {
-  state = {
-    value: 0,
-  };
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      value: 0,
+    };
+  }
 
   tabChangeHandler = () => {
     if (this.state.value === 0) {
@@ -62,7 +66,7 @@ class AuthForm extends Component {
           <Tab label="Register" />
         </Tabs>
         <TabPanel value={value} index={0}>
-          <LoginForm />
+          <LoginForm loginCheck={this.props.loginCheck} />
         </TabPanel>
         <TabPanel value={value} index={1}>
           <RegisterForm />

@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-export const post = (url, headersObj, data, callback) => {
+export const post = (url, headersObj, data, callback, callbackError) => {
   axios
     .post(url, data, {
       headers: headersObj,
@@ -9,11 +9,11 @@ export const post = (url, headersObj, data, callback) => {
       callback(response);
     })
     .catch((error) => {
-      console.log(error);
+      callbackError(error);
     });
 };
 
-export const get = (url, paramsObj, headersObj, callback) => {
+export const get = (url, paramsObj, headersObj, callback, callbackError) => {
   axios
     .get(url, {
       params: paramsObj,
@@ -23,6 +23,6 @@ export const get = (url, paramsObj, headersObj, callback) => {
       callback(response.data);
     })
     .catch(function(error) {
-      console.log(error);
+      callbackError(error);
     });
 };

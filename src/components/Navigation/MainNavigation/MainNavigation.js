@@ -5,11 +5,18 @@ import Toolbar from '@material-ui/core/Toolbar';
 import Button from '@material-ui/core/Button';
 import classes from './MainNavigation.css';
 import ModuleNavigation from '../ModuleNavigation/ModuleNavigation';
+import { withRouter } from 'react-router-dom';
 
 class MainNavigation extends Component {
   constructor(props) {
     super(props);
   }
+
+  logout = () => {
+    localStorage.removeItem('s_userid');
+    localStorage.removeItem('s_token');
+    this.props.history.push('/');
+  };
   render() {
     return (
       <AppBar position="relative" color="primary">
@@ -17,7 +24,7 @@ class MainNavigation extends Component {
           <Typography variant="h6">Schoolify</Typography>
           <div className={classes.btns}>
             {this.props.isAuth ? (
-              <Button color="inherit" variant={'outlined'}>
+              <Button color="inherit" variant={'outlined'} onClick={this.logout}>
                 Wyloguj
               </Button>
             ) : (
@@ -32,4 +39,4 @@ class MainNavigation extends Component {
   }
 }
 
-export default MainNavigation;
+export default withRouter(MainNavigation);

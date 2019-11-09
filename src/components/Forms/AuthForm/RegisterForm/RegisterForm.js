@@ -3,8 +3,9 @@ import { formBuilder } from '../../../../Helpers/FormBuilder/formBuilder';
 import Grid from '@material-ui/core/Grid';
 import Button from '@material-ui/core/Button';
 import { get, post } from '../../../../Helpers/Auth/ApiCalls';
-import { formErrorLabel } from '../../../../Helpers/Styles/globalStyle';
+import { formErrorLabel, formErrorBigLabel, formSuccessBigLabel } from '../../../../Helpers/Styles/globalStyle';
 import Tooltip from '@material-ui/core/Tooltip';
+import CircularProgress from '@material-ui/core/CircularProgress';
 
 class RegisterForm extends Component {
   constructor(props) {
@@ -12,7 +13,7 @@ class RegisterForm extends Component {
 
     this.state = {
       form: [
-        { id: 'login', type: 'text', label: 'Login' },
+        { id: 'username', type: 'text', label: 'Login' },
         { id: 'password', type: 'password', label: 'Password' },
         { id: 'password2', type: 'password', label: 'Re-type password' },
         { id: 'email', type: 'email', label: 'E-mail' },
@@ -20,8 +21,11 @@ class RegisterForm extends Component {
         { id: 'surname', type: 'text', label: 'Surname' },
         { id: 'rules', type: 'checkbox', label: 'Accept rules', value: 'true' },
       ],
+      loading: false,
       formValues: {},
       errors: {},
+      afterRegisterError: null,
+      afterRegisterMsg: null,
       shouldCheck: false,
     };
   }
@@ -63,14 +67,14 @@ class RegisterForm extends Component {
   formChecker = (form) => {
     let errors = {};
 
-    if (form.login !== undefined && form.login.length < 6) {
+    if (form.username !== undefined && form.username.length < 6) {
       errors = {
         ...errors,
-        login: 'Login powinien być dłuższy niż 6 znaków',
+        username: 'Login powinien być dłuższy niż 6 znaków',
       };
       this.state.form[0].error = true;
     } else {
-      if (errors.hasOwnProperty('login')) errors.login = null;
+      if (errors.hasOwnProperty('username')) errors.username = null;
       this.state.form[0].error = null;
     }
 
@@ -149,12 +153,74 @@ class RegisterForm extends Component {
   };
 
   registerHandler = () => {
-    console.log('Register');
+    this.setState(
+      {
+        ...this.state,
+        loading: true,
+      },
+      () => {
+        get(
+          'http://localhost:8000/api/teachers',
+          {
+            username: this.state.formValues.username,
+          },
+          null,
+          (data) => {
+            if (data['hydra:totalItems'] > 0) {
+              this.setState({
+                ...this.state,
+                loading: false,
+                afterRegisterError: 'Użytkownik o podanym loginie już istnieje',
+              });
+            } else {
+              post(
+                'http://localhost:8000/api/teachers',
+                {
+                  'Content-Type': 'application/json',
+                  'Access-Control-Allow-Origin': '*',
+                  'Access-Control-Allow-Methods': 'GET, POST, PATCH, PUT, DELETE, OPTIONS',
+                  'Access-Control-Allow-Headers': 'Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization',
+                  Origin: 'http://localhost:3000',
+                },
+                {
+                  ...this.state.formValues,
+                },
+                () => {
+                  this.setState({
+                    ...this.state,
+                    afterRegisterError: null,
+                    loading: false,
+                    afterRegisterMsg: 'Pomyślnie utworzono konto',
+                  });
+                },
+                () => {
+                  this.setState({
+                    ...this.state,
+                    afterRegisterError: 'Wystąpił nieoczekiwany problem',
+                    loading: false,
+                    afterRegisterMsg: null,
+                  });
+                }
+              );
+            }
+          },
+          () => {
+            this.setState({
+              ...this.state,
+              afterRegisterError: 'Wystąpił nieoczekiwany problem',
+              loading: false,
+              afterRegisterMsg: null,
+            });
+          }
+        );
+      }
+    );
   };
+
   render() {
     return (
-      <form autoComplete="off" onSubmit={this.props.onSubmitHandler} onChange={this.fieldChangeHandler}>
-        <Grid container spacing={1} direction="column" justify="center" alignItems="center">
+      <form autoComplete="off" onChange={this.fieldChangeHandler}>
+        <Grid container spacing={0} direction="column" justify="center" alignItems="center">
           {formBuilder(this.state.form).map((el, indx) => {
             return (
               <Grid key={indx} item xs={12} md={12} lg={12}>
@@ -165,7 +231,6 @@ class RegisterForm extends Component {
           })}
 
           <Grid item xs={12} md={12} lg={12}>
-            {console.log(Object.keys(this.state.formValues).length, this.state.form.length)}
             {Object.keys(this.state.formValues).length !== this.state.form.length ? (
               <Tooltip title="Wypełnij wszystkie pola w formularzu">
                 <Button variant="contained" color="primary" onClick={() => {}}>
@@ -185,6 +250,17 @@ class RegisterForm extends Component {
                 Register
               </Button>
             )}
+          </Grid>
+          {this.state.loading ? (
+            <Grid item xs={12} md={12} lg={12}>
+              <CircularProgress color="secondary" />
+            </Grid>
+          ) : null}
+          <Grid item xs={12} md={12} lg={12}>
+            <span style={formErrorBigLabel}>{this.state.afterRegisterError}</span>
+          </Grid>
+          <Grid item xs={12} md={12} lg={12}>
+            <span style={formSuccessBigLabel}>{this.state.afterRegisterMsg}</span>
           </Grid>
         </Grid>
       </form>

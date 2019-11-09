@@ -4,14 +4,17 @@ import Button from '@material-ui/core/Button';
 import AuthForm from '../../components/Forms/AuthForm/AuthForm';
 
 class Home extends Component {
-  state = {
-    loginDialogOpen: true,
-  };
+  constructor(props) {
+    super(props);
+    this.state = {
+      loginDialogOpen: true,
+    };
+  }
 
   render() {
     return (
       <React.Fragment>
-        <DialogTemplate open={true} content={<AuthForm />} />
+        <DialogTemplate open={this.state.loginDialogOpen} content={<AuthForm loginCheck={this.props.loginCheck} />} />
       </React.Fragment>
     );
   }

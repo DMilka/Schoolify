@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { withRouter } from 'react-router-dom';
 import ModuleNavigation from '../../components/Navigation/ModuleNavigation/ModuleNavigation';
 import JournalTable from '../../components/Journal/JournalTable/JournalTable';
 import DialogTemplate from '../../components/Dialog/DialogTemplate';
@@ -53,7 +54,13 @@ class Marks extends Component {
       dialogOpen: false,
       content: 'mark',
     };
+
+    console.log(props.students, props.markForms);
   }
+
+  componentDidMount = () => {
+    console.log('Marks');
+  };
 
   logFunc = () => {
     console.log(this.state);
@@ -111,13 +118,17 @@ class Marks extends Component {
 
   createHeaders = (items) => {
     const headers = [];
-    items.map((el) => {
-      headers.push(
-        <TableCell key={el.id} id={el.id} align="center">
-          {el.name}
-        </TableCell>
-      );
-    });
+    if (items.length > 0) {
+      items.map((el) => {
+        headers.push(
+          <TableCell key={el.id} id={el.id} align="center">
+            {el.name}
+          </TableCell>
+        );
+      });
+    } else {
+      return <TableCell align="center">Brak danych</TableCell>;
+    }
 
     return headers;
   };
@@ -128,7 +139,7 @@ class Marks extends Component {
       let cells = this.createTableCell(el.marks, formTypes);
       body.push(
         <TableRow>
-          <TableCell key={el.id} id={el.id} align="center">{`${el.name} ${el.surname}`}</TableCell>
+          <TableCell key={el.id} id={el.id} align="center">{`${el.name} ${el.Surname}`}</TableCell>
           {cells}
         </TableRow>
       );
@@ -140,7 +151,6 @@ class Marks extends Component {
   render() {
     return (
       <div>
-        <ModuleNavigation />
         <DialogTemplate
           open={this.state.dialogOpen}
           content={this.state.content}
@@ -152,10 +162,10 @@ class Marks extends Component {
           }
         />
         <MarksJournalActions onClickHandler={this.createContent} />
-        <JournalTable body={this.createBody(students, formTypes)} headers={this.createHeaders(formTypes)} />
+        <JournalTable body={this.createBody(this.props.students, this.props.markForms)} headers={this.createHeaders(this.props.markForms)} />
       </div>
     );
   }
 }
 
-export default Marks;
+export default withRouter(Marks);

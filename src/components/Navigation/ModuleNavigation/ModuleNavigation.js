@@ -17,6 +17,9 @@ class ModuleNavigation extends Component {
       <AppBar position="relative" color="inherit" className={classes.nav}>
         <Toolbar style={{ display: 'flex', justifyContent: 'center' }}>
           <Button color="primary" variant="contained">
+            <NavLink to="/dashboard" className={classes.link} activeClassName={classes.active}>
+              Panel zarządzania
+            </NavLink>
             <NavLink to="/marks" className={classes.link} activeClassName={classes.active}>
               Oceny
             </NavLink>

@@ -45,6 +45,10 @@ class Attendance extends Component {
     };
   }
 
+  componentDidMount = () => {
+    console.log('Attendance');
+  };
+
   createTableCell = (attendance, dates) => {
     const cells = [];
     let cell = null;
@@ -128,7 +132,6 @@ class Attendance extends Component {
   render() {
     return (
       <div>
-        <ModuleNavigation />
         <DialogTemplate
           open={this.state.dialogOpen}
           content={this.state.content}
