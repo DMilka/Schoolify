@@ -1,6 +1,8 @@
-import React, { Component } from 'react';
+import React, {  Component } from 'react';
+import {Redirect} from 'react-router-dom'
 import Marks from '../Marks/Marks';
 import Attendance from '../Attendance/Attendance';
+import Dasboard from '../Dashboard/Dashboard';
 import Button from '@material-ui/core/Button';
 import { get } from '../../Helpers/Auth/ApiCalls';
 class Module extends Component {
@@ -57,6 +59,14 @@ class Module extends Component {
             variant={'contained'}
             color={'secondary'}
             style={{ margin: ' 10px' }}
+            onClick={() => this.setState({ ...this.state, activeModule: 'dashboard' })}
+          >
+            Panel główny
+          </Button>
+          <Button
+            variant={'contained'}
+            color={'secondary'}
+            style={{ margin: ' 10px' }}
             onClick={() => this.setState({ ...this.state, activeModule: 'marks' })}
           >
             Oceny
@@ -70,6 +80,9 @@ class Module extends Component {
             Obecność
           </Button>
         </div>
+        {this.state.activeModule === 'dashboard' && this.state.data !== null ? (
+           <Redirect to="/dashboard" />
+        ) : null}
         {this.state.activeModule === 'marks' && this.state.data !== null ? (
           <Marks students={this.state.data.students} markForms={this.state.data.markForms} />
         ) : null}

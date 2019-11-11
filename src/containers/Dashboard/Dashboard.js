@@ -93,12 +93,13 @@ class Dashboard extends Component {
     });
   };
 
-  showModule = (id) => {
-    localStorage.setItem('s_moduleId', id);
+  showModule = (module) => {
+    localStorage.setItem('s_moduleId', module.id);
     this.setState({
       ...this.state,
       redirectToMarks: true,
-      moduleId: id,
+      moduleId: module.id,
+      module: module
     });
   };
 
@@ -108,7 +109,7 @@ class Dashboard extends Component {
         <Redirect
           to={{
             pathname: '/module',
-            state: { moduleId: this.state.moduleId },
+            state: { module: this.state.module },
           }}
         />
       );
@@ -146,7 +147,7 @@ class Dashboard extends Component {
                         <TableCell align="center">{new Date(row.startDate).toDateString()}</TableCell>
                         <TableCell align="center">{row.endDate ? row.endDate : 'Trwa'}</TableCell>
                         <TableCell align="center">
-                          <IconButton variant="contained" color="primary" onClick={() => this.showModule(row.id)}>
+                          <IconButton variant="contained" color="primary" onClick={() => this.showModule(row)}>
                             <VisibilityRoundedIcon />
                           </IconButton>
                           <IconButton variant="contained" color="secondary" onClick={() => this.confirmDeleteHandler(row.id)}>

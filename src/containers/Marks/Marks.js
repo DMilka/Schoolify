@@ -14,38 +14,7 @@ import TableRow from '@material-ui/core/TableRow';
 import TableSortLabel from '@material-ui/core/TableSortLabel';
 import Paper from '@material-ui/core/Paper';
 
-const typesItems = [{ label: 'Kartkówka', value: 1 }, { label: 'Sprawdzian', value: 2 }, { label: 'Odp. ustna', value: 3 }];
 
-const students = [
-  {
-    id: 1,
-    name: 'n1',
-    surname: 's1',
-    marks: [
-      { name: 'm1', value: 5, oldValue: 3, markFormId: 2 },
-      { name: 'm2', value: 2, oldValue: 2, markFormId: 1 },
-      { name: 'm3', value: 4, oldValue: 1, markFormId: 3 },
-    ],
-  },
-  {
-    id: 2,
-    name: 'n2',
-    surname: 's2',
-    marks: [{ name: 'm1', value: 5, oldValue: 3, markFormId: 3 }, { name: 'm3', value: 4, oldValue: 1, markFormId: 1 }],
-  },
-  {
-    id: 3,
-    name: 'n3',
-    surname: 's3',
-    marks: [
-      { name: 'm1', value: 5, oldValue: 3, markFormId: 1 },
-      { name: 'm2', value: 2, oldValue: 2, markFormId: 2 },
-      { name: 'm3', value: 4, oldValue: 1, markFormId: 3 },
-    ],
-  },
-];
-
-const formTypes = [{ id: 1, name: 'Kartkówka' }, { id: 2, name: 'Odp. ustna' }, { id: 3, name: 'Sprawdzian' }];
 class Marks extends Component {
   constructor(props) {
     super(props);
@@ -53,9 +22,11 @@ class Marks extends Component {
     this.state = {
       dialogOpen: false,
       content: 'mark',
+      avgType: props.location.state.module.averageTypeId.type
     };
 
     console.log(props.students, props.markForms);
+    console.log(props.location.state.module.averageTypeId.type);
   }
 
   componentDidMount = () => {
@@ -120,9 +91,11 @@ class Marks extends Component {
     const headers = [];
     if (items.length > 0) {
       items.map((el) => {
+        console.log(el)
         headers.push(
           <TableCell key={el.id} id={el.id} align="center">
-            {el.name}
+            {el.avgValue ? `${el.name} ( ${el.avgValue} )`  : el.name}
+         
           </TableCell>
         );
       });
@@ -161,7 +134,7 @@ class Marks extends Component {
             </Button>
           }
         />
-        <MarksJournalActions onClickHandler={this.createContent} />
+        <MarksJournalActions onClickHandler={this.createContent} avgType={this.state.avgType} students={this.props.students} markForms={this.props.markForms}/>
         <JournalTable body={this.createBody(this.props.students, this.props.markForms)} headers={this.createHeaders(this.props.markForms)} />
       </div>
     );

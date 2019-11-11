@@ -21,6 +21,7 @@ const selectLoop = (items) => {
 };
 
 const selectInputType = (item) => {
+  if(item !== null) {
   switch (item.type) {
     case 'email':
       return (
@@ -57,6 +58,7 @@ const selectInputType = (item) => {
         </FormControl>
       );
   }
+}
 };
 
 export const formBuilder = (form) => {

@@ -13,11 +13,11 @@ class MarksJournalActions extends Component {
     this.props.onClickHandler(<StudentsAddForm />);
   };
   createMarksContent = () => {
-    this.props.onClickHandler(<MarksAddForm mark />);
+    this.props.onClickHandler(<MarksAddForm students={this.props.students} markForms={this.props.markForms}/>);
   };
 
   createMarkTypeContent = () => {
-    this.props.onClickHandler(<MarksTypeAddForm />);
+    this.props.onClickHandler(<MarksTypeAddForm avgType={this.props.avgType}/>);
   };
 
   render() {

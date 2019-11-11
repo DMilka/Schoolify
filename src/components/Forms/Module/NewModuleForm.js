@@ -20,7 +20,7 @@ class NewModuleForm extends Component {
     this.state = {
       form: [{ error: false }, { error: false }],
       formValues: {
-        average_type: 1,
+        average_type: "1",
         start_date: moment().format('DD-MM-YYYY'),
       },
       loading: false,
@@ -181,12 +181,12 @@ class NewModuleForm extends Component {
             <RadioGroup aria-label="average_type" name="average_type" row onChange={this.onChangeHandler} value={this.state.formValues.average_type}>
               <Grid item xs={6} md={6} lg={6}>
                 <div className={classes.Radio}>
-                  <FormControlLabel value={1} control={<Radio color="primary" />} label="Śr. arytmetyczna" labelPlacement="bottom" />
+                  <FormControlLabel value={"1"} control={<Radio color="primary" />} label="Śr. arytmetyczna" labelPlacement="bottom" />
                 </div>
               </Grid>
               <Grid item xs={6} md={6} lg={6}>
                 <div className={classes.Radio}>
-                  <FormControlLabel value={2} control={<Radio color="primary" />} label="Śr. ważona" labelPlacement="bottom" />
+                  <FormControlLabel value={"2"} control={<Radio color="primary" />} label="Śr. ważona" labelPlacement="bottom" />
                 </div>
               </Grid>
             </RadioGroup>
