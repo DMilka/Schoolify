@@ -16,7 +16,6 @@ class Module extends Component {
   }
 
   componentDidMount = () => {
-    console.log('Markssssss');
     //  get = (url, paramsObj, headersObj, callback, callbackError);
     const moduleId = localStorage.getItem('s_moduleId');
 

@@ -55,7 +55,7 @@ class Dashboard extends Component {
       });
     } else {
       get(
-        'http://localhost:8000/api/modules?teacher_id=' + userId,
+        'http://localhost:8000/api/modules?teacherId=' + userId,
         null,
         null,
         (data) => {

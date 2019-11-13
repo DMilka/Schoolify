@@ -1,19 +1,19 @@
-import React, { Component } from 'react';
-import { withRouter } from 'react-router-dom';
-import ModuleNavigation from '../../components/Navigation/ModuleNavigation/ModuleNavigation';
-import JournalTable from '../../components/Journal/JournalTable/JournalTable';
-import DialogTemplate from '../../components/Dialog/DialogTemplate';
-import MarksJournalActions from '../../components/Journal/JournalActions/MarksJournalActions';
-import Button from '@material-ui/core/Button';
-import Table from '@material-ui/core/Table';
-import TableBody from '@material-ui/core/TableBody';
-import TableCell from '@material-ui/core/TableCell';
-import TableHead from '@material-ui/core/TableHead';
-import TablePagination from '@material-ui/core/TablePagination';
-import TableRow from '@material-ui/core/TableRow';
-import TableSortLabel from '@material-ui/core/TableSortLabel';
-import Paper from '@material-ui/core/Paper';
-
+import React, { Component } from "react";
+import { withRouter } from "react-router-dom";
+import ModuleNavigation from "../../components/Navigation/ModuleNavigation/ModuleNavigation";
+import JournalTable from "../../components/Journal/JournalTable/JournalTable";
+import DialogTemplate from "../../components/Dialog/DialogTemplate";
+import MarksJournalActions from "../../components/Journal/JournalActions/MarksJournalActions";
+import Button from "@material-ui/core/Button";
+import Table from "@material-ui/core/Table";
+import TableBody from "@material-ui/core/TableBody";
+import TableCell from "@material-ui/core/TableCell";
+import TableHead from "@material-ui/core/TableHead";
+import TablePagination from "@material-ui/core/TablePagination";
+import TableRow from "@material-ui/core/TableRow";
+import TableSortLabel from "@material-ui/core/TableSortLabel";
+import Paper from "@material-ui/core/Paper";
+import { get } from "../../Helpers/Auth/ApiCalls";
 
 class Marks extends Component {
   constructor(props) {
@@ -21,27 +21,74 @@ class Marks extends Component {
 
     this.state = {
       dialogOpen: false,
-      content: 'mark',
-      avgType: props.location.state.module.averageTypeId.type
+      content: "mark",
+      avgType: props.location.state.module.AverageTypeId.type,
+      loading: true
     };
-
-    console.log(props.students, props.markForms);
-    console.log(props.location.state.module.averageTypeId.type);
   }
 
   componentDidMount = () => {
-    console.log('Marks');
+    get(
+      "http://localhost:8000/api/students?moduleId=" +
+        localStorage.getItem("s_moduleId"),
+      null,
+      null,
+      data => {
+        console.log(data);
+        get(
+          "http://localhost:8000/api/mark_forms?moduleId=" +
+            localStorage.getItem("s_moduleId"),
+          null,
+          null,
+          data => {
+            console.log(data);
+            this.setState(
+              {
+                ...this.state,
+                errorMsg: null,
+                loading: false,
+                markForms: data
+              },
+              () => console.log(this.state)
+            );
+          },
+          error => {
+            console.log(error);
+            this.setState({
+              ...this.state,
+              errorMsg: "Wystąpił nieoczekiwany błąd.",
+              loading: false
+            });
+          }
+        );
+
+        this.setState({
+          ...this.state,
+          errorMsg: null,
+
+          students: data
+        });
+      },
+      error => {
+        console.log(error);
+        this.setState({
+          ...this.state,
+          errorMsg: "Wystąpił nieoczekiwany błąd.",
+          loading: false
+        });
+      }
+    );
   };
 
   logFunc = () => {
     console.log(this.state);
   };
 
-  createContent = (content) => {
+  createContent = content => {
     this.setState(
       {
         ...this.state,
-        content: content,
+        content: content
       },
       this.openDialogHandler
     );
@@ -50,14 +97,14 @@ class Marks extends Component {
   openDialogHandler = () => {
     this.setState({
       ...this.state,
-      dialogOpen: true,
+      dialogOpen: true
     });
   };
 
   closeDialogHandler = () => {
     this.setState({
       ...this.state,
-      dialogOpen: false,
+      dialogOpen: false
     });
   };
 
@@ -65,37 +112,58 @@ class Marks extends Component {
     const cells = [];
     let cell = null;
 
-    marksTypes.forEach((markType) => {
-      cell = null;
-      marks.forEach((mark) => {
-        if (markType.id === mark.markFormId) {
-          cell = (
-            <TableCell id={mark.id} key={mark.id} align="center">
-              {mark.value}
-            </TableCell>
-          );
+    if (marksTypes) {
+      marksTypes["hydra:member"].forEach(markType => {
+        cell = null;
+        marks.forEach(mark => {
+          if (markType["@id"] === mark.markformId) {
+            cell = (
+              <TableCell id={mark.id} key={mark.id} align="center">
+                {mark.value}
+              </TableCell>
+            );
+          }
+        });
+
+        if (cell === null) {
+          cell = <TableCell key={markType.id} align="center"></TableCell>;
         }
+
+        cells.push(cell);
       });
 
-      if (cell === null) {
-        cell = <TableCell key={markType.id} align="center"></TableCell>;
-      }
-
-      cells.push(cell);
-    });
-
-    return cells;
+      return cells;
+    }
   };
 
-  createHeaders = (items) => {
+  createBody = (students, formTypes) => {
+    let body = [];
+    students &&
+      students["hydra:member"].map(el => {
+        let cells = this.createTableCell(el.marks, formTypes);
+        body.push(
+          <TableRow>
+            <TableCell
+              key={el.id}
+              id={el.id}
+              align="center"
+            >{`${el.name} ${el.surname}`}</TableCell>
+            {cells}
+          </TableRow>
+        );
+      });
+
+    return body;
+  };
+
+  createHeaders = items => {
     const headers = [];
-    if (items.length > 0) {
-      items.map((el) => {
-        console.log(el)
+    if (items && items["hydra:member"].length > 0) {
+      items["hydra:member"].map(el => {
+        console.log(el);
         headers.push(
           <TableCell key={el.id} id={el.id} align="center">
-            {el.avgValue ? `${el.name} ( ${el.avgValue} )`  : el.name}
-         
+            {el.avgValue ? `${el.name} ( ${el.avgValue} )` : el.name}
           </TableCell>
         );
       });
@@ -106,23 +174,11 @@ class Marks extends Component {
     return headers;
   };
 
-  createBody = (students, formTypes) => {
-    let body = [];
-    students.map((el) => {
-      let cells = this.createTableCell(el.marks, formTypes);
-      body.push(
-        <TableRow>
-          <TableCell key={el.id} id={el.id} align="center">{`${el.name} ${el.Surname}`}</TableCell>
-          {cells}
-        </TableRow>
-      );
-    });
-
-    return body;
-  };
-
   render() {
-    return (
+    console.log(this.state);
+    return this.state.loading ? (
+      <span>Loading...</span>
+    ) : (
       <div>
         <DialogTemplate
           open={this.state.dialogOpen}
@@ -134,8 +190,16 @@ class Marks extends Component {
             </Button>
           }
         />
-        <MarksJournalActions onClickHandler={this.createContent} avgType={this.state.avgType} students={this.props.students} markForms={this.props.markForms}/>
-        <JournalTable body={this.createBody(this.props.students, this.props.markForms)} headers={this.createHeaders(this.props.markForms)} />
+        <MarksJournalActions
+          onClickHandler={this.createContent}
+          avgType={this.state.avgType}
+          students={this.state.students}
+          markForms={this.state.markForms}
+        />
+        <JournalTable
+          body={this.createBody(this.state.students, this.state.markForms)}
+          headers={this.createHeaders(this.state.markForms)}
+        />
       </div>
     );
   }
