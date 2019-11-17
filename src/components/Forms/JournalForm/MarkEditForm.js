@@ -4,7 +4,8 @@ import Grid from "@material-ui/core/Grid";
 import Button from "@material-ui/core/Button";
 import Select from "@material-ui/core/Select";
 import MenuItem from "@material-ui/core/MenuItem";
-import { post } from "../../../Helpers/Auth/ApiCalls";
+import { put } from "../../../Helpers/Auth/ApiCalls";
+import TextField from "@material-ui/core/TextField";
 import {
   formErrorLabel,
   formErrorBigLabel,
@@ -22,11 +23,11 @@ const typesItems = [
   { label: "Sprawdzian", value: 2 },
   { label: "Odp. ustna", value: 3 }
 ];
-class MarksAddForm extends Component {
+class MarkEditForm extends Component {
   constructor(props) {
     super(props);
 
-    let marksInputs = null;
+    console.log(props);
 
     this.state = {
       form: [
@@ -36,15 +37,12 @@ class MarksAddForm extends Component {
           type: "text",
           label: "Ocena",
           style: { width: "100%" },
-          formcontrolprops: { style: { width: "100%" } },
-          students: props.students,
-          markForms: props.markForms
-        },
-        ,
+          formcontrolprops: { style: { width: "100%" } }
+        }
       ],
       formValues: {
-        studentId: null,
-        markFormId: null
+        value: props.mark.value ? props.mark.value : null,
+        oldValue: props.mark.oldValue ? props.mark.oldValue : null
       },
       loading: false,
       errors: {},
@@ -80,8 +78,14 @@ class MarksAddForm extends Component {
         loading: true
       },
       () => {
-        post(
-          "http://localhost:8000/api/marks",
+        put(
+          `http://localhost:8000${this.props.mark["@id"]}`,
+          {
+            value: parseFloat(this.state.formValues.value),
+            oldValue: parseFloat(this.state.formValues.oldValue),
+            studentId: `${this.props.mark.studentId}`,
+            markformId: `${this.props.mark.markformId}`
+          },
           {
             "Content-Type": "application/json",
             "Access-Control-Allow-Origin": "*",
@@ -90,16 +94,12 @@ class MarksAddForm extends Component {
             "Access-Control-Allow-Headers":
               "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization"
           },
-          {
-            value: parseFloat(this.state.formValues.mark),
-            studentId: `/api/students/${this.state.formValues.studentId}`,
-            markformId: `/api/mark_forms/${this.state.formValues.markFormId}`
-          },
+
           () => {
             this.setState({
               ...this.state,
               loading: false,
-              afterRegisterMsg: "Dodano ocenę",
+              afterRegisterMsg: "Edytowano ocenę",
               error: false
             });
           },
@@ -118,56 +118,32 @@ class MarksAddForm extends Component {
   };
 
   render() {
+    const { value, oldValue } = this.props.mark;
     return (
       <form autoComplete="off" onChange={this.fieldChangeHandler}>
         <div style={{ flexGrow: 1, minWidth: "300px", minHeight: "200px" }}>
           <Grid container spacing={3}>
-            {formBuilder(this.state.form).map((el, indx) => {
-              return (
-                <Grid key={indx} item xs={12} md={12} lg={12}>
-                  {el}
-                </Grid>
-              );
-            })}
-            <Grid item xs={12} md={12} lg={12}>
-              <Select
-                fullWidth
-                value={this.state.formValues.studentId}
-                onChange={this.fieldChangeHandler}
-                name={"studentId"}
-              >
-                {this.props.students &&
-                  this.props.students["hydra:member"].map(el => {
-                    return (
-                      <MenuItem key={el.id} value={el.id}>
-                        {el.name} {el.surname}
-                      </MenuItem>
-                    );
-                  })}
-              </Select>
+            <Grid item xs={12} md={6} lg={6}>
+              <TextField
+                name={"value"}
+                label="Ocena"
+                margin="normal"
+                value={this.state.formValues.value}
+              />
             </Grid>
-            <Grid item xs={12} md={12} lg={12}>
-              <Select
-                fullWidth
-                value={this.state.formValues.markFormId}
-                onChange={this.fieldChangeHandler}
-                name={"markFormId"}
-              >
-                {this.props.markForms &&
-                  this.props.markForms["hydra:member"].map(el => {
-                    return (
-                      <MenuItem key={el.id} value={el.id}>
-                        {el.name}
-                      </MenuItem>
-                    );
-                  })}
-              </Select>
+            <Grid item xs={12} md={6} lg={6}>
+              <TextField
+                name={"oldValue"}
+                label="Stara ocena"
+                margin="normal"
+                value={this.state.formValues.oldValue}
+              />
             </Grid>
           </Grid>
         </div>
         <div style={{ margin: "0 auto", textAlign: "center" }}>
           <Button variant="contained" color="primary" onClick={this.markAdd}>
-            Dodaj ocene
+            Zmień ocene
           </Button>
           <Grid container spacing={3}>
             {this.state.loading ? (
@@ -192,4 +168,4 @@ class MarksAddForm extends Component {
   }
 }
 
-export default MarksAddForm;
+export default MarkEditForm;

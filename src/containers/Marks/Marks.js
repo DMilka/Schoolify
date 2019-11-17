@@ -14,6 +14,9 @@ import TableRow from "@material-ui/core/TableRow";
 import TableSortLabel from "@material-ui/core/TableSortLabel";
 import Paper from "@material-ui/core/Paper";
 import { get } from "../../Helpers/Auth/ApiCalls";
+import IconButton from "@material-ui/core/IconButton";
+import CreateIcon from "@material-ui/icons/Create";
+import MarkEditForm from "../../components/Forms/JournalForm/MarkEditForm";
 
 class Marks extends Component {
   constructor(props) {
@@ -23,60 +26,81 @@ class Marks extends Component {
       dialogOpen: false,
       content: "mark",
       avgType: props.location.state.module.AverageTypeId.type,
-      loading: true
+      loading: true,
+      editedMark: null,
+      editedMarkDialog: false
     };
   }
 
   componentDidMount = () => {
-    get(
-      "http://localhost:8000/api/students?moduleId=" +
-        localStorage.getItem("s_moduleId"),
-      null,
-      null,
-      data => {
-        console.log(data);
-        get(
-          "http://localhost:8000/api/mark_forms?moduleId=" +
-            localStorage.getItem("s_moduleId"),
-          null,
-          null,
-          data => {
-            console.log(data);
-            this.setState(
-              {
-                ...this.state,
-                errorMsg: null,
-                loading: false,
-                markForms: data
-              },
-              () => console.log(this.state)
-            );
-          },
-          error => {
-            console.log(error);
-            this.setState({
-              ...this.state,
-              errorMsg: "Wystąpił nieoczekiwany błąd.",
-              loading: false
-            });
-          }
-        );
+    this.init();
+  };
 
-        this.setState({
-          ...this.state,
-          errorMsg: null,
-
-          students: data
-        });
+  init = () => {
+    this.setState(
+      {
+        ...this.state,
+        loading: true
       },
-      error => {
-        console.log(error);
-        this.setState({
-          ...this.state,
-          errorMsg: "Wystąpił nieoczekiwany błąd.",
-          loading: false
-        });
-      }
+      get(
+        "http://localhost:8000/api/students?moduleId=" +
+          localStorage.getItem("s_moduleId"),
+        null,
+        null,
+        data => {
+          const studentsMarks = [];
+          console.log(data);
+          data["hydra:member"].forEach(el => {
+            el.marks.forEach(el2 => {
+              studentsMarks[el2.id] = false;
+            });
+          });
+          get(
+            "http://localhost:8000/api/mark_forms?moduleId=" +
+              localStorage.getItem("s_moduleId"),
+            null,
+            null,
+            data => {
+              console.log(data);
+              this.setState(
+                {
+                  ...this.state,
+                  errorMsg: null,
+                  loading: false,
+                  markForms: data
+                },
+                () => console.log(this.state)
+              );
+            },
+            error => {
+              console.log(error);
+              this.setState({
+                ...this.state,
+                errorMsg: "Wystąpił nieoczekiwany błąd.",
+                loading: false
+              });
+            }
+          );
+
+          this.setState(
+            {
+              ...this.state,
+              errorMsg: null,
+              studentsMarksEdit: studentsMarks,
+              students: data
+            },
+            () => console.log(this.state)
+          );
+        },
+        error => {
+          console.log(error);
+          this.setState({
+            ...this.state,
+            errorMsg: "Wystąpił nieoczekiwany błąd.",
+            loading: false
+          });
+        }
+      )
     );
   };
 
@@ -102,9 +126,19 @@ class Marks extends Component {
   };
 
   closeDialogHandler = () => {
+    this.init();
     this.setState({
       ...this.state,
-      dialogOpen: false
+      dialogOpen: false,
+      editedMarkDialog: false
+    });
+  };
+
+  editMark = mark => {
+    this.setState({
+      ...this.state,
+      editedMark: mark,
+      editedMarkDialog: true
     });
   };
 
@@ -120,6 +154,14 @@ class Marks extends Component {
             cell = (
               <TableCell id={mark.id} key={mark.id} align="center">
                 {mark.value}
+                {mark.oldValue ? ` ( ${mark.oldValue} )` : null}
+                <IconButton
+                  variant="contained"
+                  color="primary"
+                  onClick={() => this.editMark(mark)}
+                >
+                  <CreateIcon />
+                </IconButton>
               </TableCell>
             );
           }
@@ -199,6 +241,16 @@ class Marks extends Component {
         <JournalTable
           body={this.createBody(this.state.students, this.state.markForms)}
           headers={this.createHeaders(this.state.markForms)}
+        />
+        <DialogTemplate
+          open={this.state.editedMarkDialog}
+          content={<MarkEditForm mark={this.state.editedMark} />}
+          onClose={this.closeDialogHandler}
+          actionButtons={
+            <Button color="secondary" onClick={this.closeDialogHandler}>
+              Zamknij
+            </Button>
+          }
         />
       </div>
     );

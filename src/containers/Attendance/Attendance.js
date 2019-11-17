@@ -13,8 +13,15 @@ import TableRow from "@material-ui/core/TableRow";
 import TableSortLabel from "@material-ui/core/TableSortLabel";
 import Paper from "@material-ui/core/Paper";
 import Checkbox from "@material-ui/core/Checkbox";
-import { get } from "../../Helpers/Auth/ApiCalls";
+import { get, post, put } from "../../Helpers/Auth/ApiCalls";
 import moment from "moment";
+import {
+  formErrorLabel,
+  formErrorBigLabel,
+  formSuccessBigLabel
+} from "../../Helpers/Styles/globalStyle";
+import CircularProgress from "@material-ui/core/CircularProgress";
+import Grid from "@material-ui/core/Grid";
 
 const students = [
   {
@@ -63,58 +70,295 @@ class Attendance extends Component {
       content: "attendance",
       attendanceForms: null,
       loading: true,
-      errorMsg: null
+      errorMsg: null,
+      formValues: [],
+      actualSessionFormValues: {}
     };
   }
 
-  componentDidMount = () => {
-    get(
-      "http://localhost:8000/api/students?moduleId=" +
-        localStorage.getItem("s_moduleId"),
-      null,
-      null,
-      data => {
+  init = () => {
+    this.setState(
+      {
+        ...this.state,
+        loading: true
+      },
+      () =>
         get(
-          "http://localhost:8000/api/attendance_forms?moduleId=" +
+          "http://localhost:8000/api/students?moduleId=" +
             localStorage.getItem("s_moduleId"),
           null,
           null,
-          data2 => {
-            this.setState(
-              {
-                ...this.state,
-                errorMsg: null,
-                loading: false,
-                attendanceForms: data2,
-                students: data
+          data => {
+            get(
+              "http://localhost:8000/api/attendance_forms?moduleId=" +
+                localStorage.getItem("s_moduleId"),
+              null,
+              null,
+              data2 => {
+                let attendances = [];
+                data["hydra:member"].forEach(el => {
+                  el.attendances.forEach(el2 => {
+                    let attenFormId = el2.attendanceFormId.split("/");
+                    // console.log(attenFormId);
+                    attendances[`${el.id}_${attenFormId[3]}_${el2.id}`] = {
+                      value: el2.value,
+                      studentId: el["@id"],
+                      attendanceFormId: el2.attendanceFormId
+                    };
+                  });
+                });
+                this.setState(
+                  {
+                    ...this.state,
+                    errorMsg: null,
+                    loading: false,
+                    attendanceForms: data2,
+                    students: data,
+                    formValues: attendances
+                  },
+                  () => console.log(this.state)
+                );
               },
-              () => console.log(this.state)
+              error => {
+                console.log(error);
+                this.setState({
+                  ...this.state,
+                  errorMsg: "Wystąpił nieoczekiwany błąd.",
+                  loading: false
+                });
+              }
             );
-          },
-          error => {
-            console.log(error);
-            this.setState({
-              ...this.state,
-              errorMsg: "Wystąpił nieoczekiwany błąd.",
-              loading: false
-            });
           }
-        );
-      }
+        )
     );
   };
 
-  createTableCell = (attendance, dates) => {
+  componentDidMount = () => {
+    this.init();
+  };
+
+  handleChange = value => {
+    const data = value;
+    const splittedData = data.split("_");
+
+    const studentId = splittedData[0];
+    const attendanceFormId = splittedData[1];
+    const attendanceId = splittedData[2];
+
+    let attendance = {
+      value: true,
+      studentId: `/api/students/${studentId}`,
+      attendanceFormId: `/api/attendance_forms/${attendanceFormId}`
+    };
+
+    if (this.state.formValues && this.state.formValues[value]) {
+      attendance = {
+        ...attendance,
+        value: false
+      };
+
+      if (
+        this.state.formValues &&
+        this.state.formValues[value] &&
+        this.state.actualSessionFormValues &&
+        this.state.actualSessionFormValues[value]
+      ) {
+        this.setState(
+          {
+            ...this.state,
+
+            actualSessionFormValues: {
+              ...this.state.actualSessionFormValues,
+              [value]: undefined
+            }
+          },
+          () => {
+            console.log(this.state);
+            console.log(Object.values(this.state.actualSessionFormValues));
+          }
+        );
+      } else {
+        this.setState(
+          {
+            ...this.state,
+
+            actualSessionFormValues: {
+              ...this.state.actualSessionFormValues,
+              [value]: {
+                ...attendance,
+                value: !this.state.formValues[value].value
+              }
+            }
+          },
+          () => {
+            console.log(this.state);
+            console.log(Object.values(this.state.actualSessionFormValues));
+          }
+        );
+      }
+    } else {
+      if (
+        this.state.actualSessionFormValues &&
+        this.state.actualSessionFormValues[value]
+      ) {
+        this.setState(
+          {
+            ...this.state,
+
+            actualSessionFormValues: {
+              ...this.state.actualSessionFormValues,
+              [value]: undefined
+            }
+          },
+          () => {
+            console.log(this.state);
+            console.log(Object.values(this.state.actualSessionFormValues));
+          }
+        );
+      } else {
+        this.setState(
+          {
+            ...this.state,
+
+            actualSessionFormValues: {
+              ...this.state.actualSessionFormValues,
+              [value]: attendance
+            }
+          },
+          () => {
+            console.log(this.state);
+            console.log(Object.values(this.state.actualSessionFormValues));
+          }
+        );
+      }
+    }
+  };
+
+  confirmAttendance = () => {
+    const entries = Object.entries(this.state.actualSessionFormValues);
+
+    for (const [key, value] of entries) {
+      // console.log(key);
+      // console.log(value);
+      if (value !== undefined) {
+        console.log(key);
+        console.log(value);
+        if (this.state.formValues[key]) {
+          const data = key;
+          const splittedData = data.split("_");
+
+          const studentId = splittedData[0];
+          const attendanceFormId = splittedData[1];
+          const attendanceId = splittedData[2];
+          console.log(studentId, attendanceFormId, attendanceId);
+          put(
+            `http://localhost:8000/api/attendances/${attendanceId}`,
+            value,
+            {
+              "Content-Type": "application/json",
+              "Access-Control-Allow-Origin": "*",
+              "Access-Control-Allow-Methods":
+                "GET, POST, PATCH, PUT, DELETE, OPTIONS",
+              "Access-Control-Allow-Headers":
+                "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization"
+            },
+            res => console.log(res),
+            err => console.log(err)
+          );
+        } else {
+          post(
+            "http://localhost:8000/api/attendances",
+            {
+              "Content-Type": "application/json",
+              "Access-Control-Allow-Origin": "*",
+              "Access-Control-Allow-Methods":
+                "GET, POST, PATCH, PUT, DELETE, OPTIONS",
+              "Access-Control-Allow-Headers":
+                "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization"
+            },
+            {
+              ...value
+            },
+            () => {
+              this.setState({
+                ...this.state,
+                afterRegisterError: null,
+                loading: false,
+                afterRegisterMsg: "Pomyślnie zatwierdzono sprawdzanie"
+              });
+            },
+            () => {
+              this.setState({
+                ...this.state,
+                afterRegisterError: "Wystąpił nieoczekiwany problem",
+                loading: false,
+                afterRegisterMsg: null
+              });
+            }
+          );
+        }
+
+        //
+      }
+    }
+    // this.state.actualSessionFormValues.forEach(el => {
+    //   if (el !== undefined) {
+    //     console.log(el);
+    //    post(
+    //   "http://localhost:8000/api/attendances",
+    //   {
+    //     "Content-Type": "application/json",
+    //     "Access-Control-Allow-Origin": "*",
+    //     "Access-Control-Allow-Methods":
+    //       "GET, POST, PATCH, PUT, DELETE, OPTIONS",
+    //     "Access-Control-Allow-Headers":
+    //       "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization"
+    //   },
+    //   {
+    //     ...el
+    //   },
+    //   () => {
+    //     this.setState({
+    //       ...this.state,
+    //       afterRegisterError: null,
+    //       loading: false,
+    //       afterRegisterMsg: "Pomyślnie zatwierdzono sprawdzanie"
+    //     });
+    //   },
+    //   () => {
+    //     this.setState({
+    //       ...this.state,
+    //       afterRegisterError: "Wystąpił nieoczekiwany problem",
+    //       loading: false,
+    //       afterRegisterMsg: null
+    //     });
+    //   }
+    // );
+    //
+    // }
+    // });
+  };
+
+  checkActualSessionFormValues = () => {
+    let inc = 0;
+
+    Object.values(this.state.actualSessionFormValues).forEach(el => {
+      if (el !== undefined) inc++;
+    });
+
+    return inc;
+  };
+
+  createTableCell = (attendance, dates, studentid) => {
     const cells = [];
     let cell = null;
     let inc = 0;
-    console.log(attendance, dates);
+    const formValues = [];
     dates &&
       dates["hydra:member"].forEach(date => {
         inc++;
         cell = null;
         attendance.forEach(attendance => {
-          console.log(date["@id"], attendance.attendanceFormId);
           if (date["@id"] === attendance.attendanceFormId) {
             cell = (
               <TableCell
@@ -123,9 +367,17 @@ class Attendance extends Component {
                 align="center"
               >
                 <Checkbox
-                  checked={attendance.value}
-                  value={attendance.value}
-                  disabled
+                  defaultChecked={attendance.value}
+                  value={`${studentid}_${date.id}_${attendance.id}`}
+                  onChange={() =>
+                    this.handleChange(
+                      `${studentid}_${date.id}_${attendance.id}`
+                    )
+                  }
+                  disabled={
+                    moment(date.date).format("DD-MM-YYYY") !==
+                    moment().format("DD-MM-YYYY")
+                  }
                 />
               </TableCell>
             );
@@ -136,7 +388,14 @@ class Attendance extends Component {
                 key={attendance.attendanceFormId}
                 align="center"
               >
-                <Checkbox checked={false} value={false} disabled />
+                <Checkbox
+                  value={`${studentid}_${date.id}`}
+                  onChange={() => this.handleChange(`${studentid}_${date.id}`)}
+                  disabled={
+                    moment(date.date).format("DD-MM-YYYY") !==
+                    moment().format("DD-MM-YYYY")
+                  }
+                />
               </TableCell>
             );
           }
@@ -145,7 +404,14 @@ class Attendance extends Component {
         if (cell === null) {
           cell = (
             <TableCell key={date.id + "_" + inc} align="center">
-              <Checkbox checked={false} value={false} disabled />
+              <Checkbox
+                value={`${studentid}_${date.id}`}
+                onChange={() => this.handleChange(`${studentid}_${date.id}`)}
+                disabled={
+                  moment(date.date).format("DD-MM-YYYY") !==
+                  moment().format("DD-MM-YYYY")
+                }
+              />
             </TableCell>
           );
         }
@@ -174,7 +440,7 @@ class Attendance extends Component {
     let body = [];
     students &&
       students["hydra:member"].map(el => {
-        let cells = this.createTableCell(el.attendances, dates);
+        let cells = this.createTableCell(el.attendances, dates, el.id);
         body.push(
           <TableRow key={el.id}>
             <TableCell
@@ -198,6 +464,7 @@ class Attendance extends Component {
   };
 
   closeDialogHandler = () => {
+    this.init();
     this.setState({
       ...this.state,
       dialogOpen: false
@@ -227,17 +494,55 @@ class Attendance extends Component {
             </Button>
           }
         />
-        <AttendanceJournalActions
-          onClickHandler={this.createContent}
-          param={students}
-        />
-        <JournalTable
-          body={this.createBody(
-            this.state.students,
-            this.state.attendanceForms
+        {this.state.loading ? (
+          <div>Loading...</div>
+        ) : (
+          <React.Fragment>
+            <AttendanceJournalActions
+              onClickHandler={this.createContent}
+              param={students}
+            />
+            <JournalTable
+              body={this.createBody(
+                this.state.students,
+                this.state.attendanceForms
+              )}
+              headers={this.createHeaders(this.state.attendanceForms)}
+            />
+          </React.Fragment>
+        )}
+        <Grid
+          container
+          spacing={0}
+          direction="column"
+          justify="center"
+          alignItems="center"
+        >
+          {this.checkActualSessionFormValues() > 0 && (
+            <Button
+              variant={"contained"}
+              color={"primary"}
+              onClick={this.confirmAttendance}
+            >
+              Zatwierdź sprawdzanie
+            </Button>
           )}
-          headers={this.createHeaders(this.state.attendanceForms)}
-        />
+          {this.state.loading ? (
+            <Grid item xs={12} md={12} lg={12}>
+              <CircularProgress color="secondary" />
+            </Grid>
+          ) : null}
+          <Grid item xs={12} md={12} lg={12}>
+            <span style={formErrorBigLabel}>
+              {this.state.afterRegisterError}
+            </span>
+          </Grid>
+          <Grid item xs={12} md={12} lg={12}>
+            <span style={formSuccessBigLabel}>
+              {this.state.afterRegisterMsg}
+            </span>
+          </Grid>
+        </Grid>
       </div>
     );
   }
