@@ -33,3 +33,10 @@ export const put = (url, data, headersObj, callback, callbackError) => {
     .then(response => callback(response))
     .catch(e => callbackError(e));
 };
+
+export const deleteCall = (url, id, headersObj, callback, callbackError) => {
+  axios
+    .delete(`${url}${id}`, headersObj)
+    .then(res => callback(res))
+    .catch(e => callbackError(e));
+};

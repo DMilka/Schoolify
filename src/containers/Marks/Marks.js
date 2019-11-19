@@ -13,7 +13,7 @@ import TablePagination from "@material-ui/core/TablePagination";
 import TableRow from "@material-ui/core/TableRow";
 import TableSortLabel from "@material-ui/core/TableSortLabel";
 import Paper from "@material-ui/core/Paper";
-import { get } from "../../Helpers/Auth/ApiCalls";
+import { get, deleteCall } from "../../Helpers/Auth/ApiCalls";
 import IconButton from "@material-ui/core/IconButton";
 import CreateIcon from "@material-ui/icons/Create";
 import MarkEditForm from "../../components/Forms/JournalForm/MarkEditForm";
@@ -25,10 +25,11 @@ class Marks extends Component {
     this.state = {
       dialogOpen: false,
       content: "mark",
-      avgType: props.location.state.module.AverageTypeId.type,
+      avgType: props.location.state.module.averageTypeId.type,
       loading: true,
       editedMark: null,
-      editedMarkDialog: false
+      editedMarkDialog: false,
+      editMode: false
     };
   }
 
@@ -125,6 +126,13 @@ class Marks extends Component {
     });
   };
 
+  toggleEditMode = () => {
+    this.setState({
+      ...this.state,
+      editMode: !this.state.editMode
+    });
+  };
+
   closeDialogHandler = () => {
     this.init();
     this.setState({
@@ -155,13 +163,15 @@ class Marks extends Component {
               <TableCell id={mark.id} key={mark.id} align="center">
                 {mark.value}
                 {mark.oldValue ? ` ( ${mark.oldValue} )` : null}
-                <IconButton
-                  variant="contained"
-                  color="primary"
-                  onClick={() => this.editMark(mark)}
-                >
-                  <CreateIcon />
-                </IconButton>
+                {this.state.editMode ? (
+                  <IconButton
+                    variant="contained"
+                    color="primary"
+                    onClick={() => this.editMark(mark)}
+                  >
+                    <CreateIcon />
+                  </IconButton>
+                ) : null}
               </TableCell>
             );
           }
@@ -202,7 +212,6 @@ class Marks extends Component {
     const headers = [];
     if (items && items["hydra:member"].length > 0) {
       items["hydra:member"].map(el => {
-        console.log(el);
         headers.push(
           <TableCell key={el.id} id={el.id} align="center">
             {el.avgValue ? `${el.name} ( ${el.avgValue} )` : el.name}
@@ -237,6 +246,7 @@ class Marks extends Component {
           avgType={this.state.avgType}
           students={this.state.students}
           markForms={this.state.markForms}
+          toggleEditMode={this.toggleEditMode}
         />
         <JournalTable
           body={this.createBody(this.state.students, this.state.markForms)}

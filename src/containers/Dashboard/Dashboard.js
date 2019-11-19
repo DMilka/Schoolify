@@ -20,8 +20,9 @@ import DialogTitle from "@material-ui/core/DialogTitle";
 import DialogTemplate from "../../components/Dialog/DialogTemplate";
 import NewModuleForm from "../../components/Forms/Module/NewModuleForm";
 import { Redirect, withRouter } from "react-router-dom";
-import { get, post } from "../../Helpers/Auth/ApiCalls";
+import { get, post, deleteCall } from "../../Helpers/Auth/ApiCalls";
 import { moment } from "moment";
+import DoneIcon from "@material-ui/icons/Done";
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
@@ -54,30 +55,35 @@ class Dashboard extends Component {
         loading: false
       });
     } else {
-      get(
-        "http://localhost:8000/api/modules?teacherId=" + userId,
-        null,
-        null,
-        data => {
-          console.log(data);
-          this.setState({
-            ...this.state,
-            errorMsg: null,
-            loading: false,
-            data: data
-          });
-        },
-        error => {
-          console.log(error);
-          this.setState({
-            ...this.state,
-            errorMsg: "Wystąpił nieoczekiwany błąd.",
-            loading: false
-          });
-        }
-      );
+      this.init();
     }
   }
+
+  init = () => {
+    const userId = localStorage.getItem("s_userid");
+    get(
+      "http://localhost:8000/api/modules?teacherId=" + userId,
+      null,
+      null,
+      data => {
+        console.log(data);
+        this.setState({
+          ...this.state,
+          errorMsg: null,
+          loading: false,
+          data: data
+        });
+      },
+      error => {
+        console.log(error);
+        this.setState({
+          ...this.state,
+          errorMsg: "Wystąpił nieoczekiwany błąd.",
+          loading: false
+        });
+      }
+    );
+  };
 
   addModuleToggleHandler = () => {
     this.setState({
@@ -87,10 +93,39 @@ class Dashboard extends Component {
   };
 
   confirmDeleteHandler = id => {
-    this.setState({
-      ...this.state,
-      delete: !this.state.delete
-    });
+    console.log(id);
+    this.setState(
+      {
+        ...this.state,
+        errorMsg: null,
+        loading: true
+      },
+      () =>
+        deleteCall(
+          "http://localhost:8000",
+          id,
+          {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods":
+              "GET, POST, PATCH, PUT, DELETE, OPTIONS",
+            "Access-Control-Allow-Headers":
+              "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization"
+          },
+          res => {
+            console.log(res);
+            this.init();
+          },
+          error => {
+            console.log(error);
+            this.setState({
+              ...this.state,
+              errorMsg: "Wystąpił nieoczekiwany błąd.",
+              loading: false
+            });
+          }
+        )
+    );
   };
 
   showModule = module => {
@@ -166,9 +201,18 @@ class Dashboard extends Component {
                             <IconButton
                               variant="contained"
                               color="secondary"
-                              onClick={() => this.confirmDeleteHandler(row.id)}
+                              onClick={() =>
+                                this.confirmDeleteHandler(row["@id"])
+                              }
                             >
                               <DeleteIcon />
+                            </IconButton>
+                            <IconButton
+                              variant="contained"
+                              color="secondary"
+                              onClick={() => {}}
+                            >
+                              <DoneIcon />
                             </IconButton>
                           </TableCell>
                         </TableRow>
@@ -183,14 +227,14 @@ class Dashboard extends Component {
           open={this.state.open}
           onClose={this.addModuleToggleHandler}
           TransitionComponent={Transition}
-          keepMounted
+
           title={"Dodaj nowy moduł"}
-          content={<NewModuleForm />}
+          content={<NewModuleForm callback={this.init} />}
         />
         <DialogTemplate
           open={this.state.delete}
           TransitionComponent={Transition}
-          keepMounted
+
           onClose={this.confirmDeleteHandler}
           title={"Czy napewno usunąć"}
           actionButtons={

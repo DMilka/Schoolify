@@ -11,17 +11,9 @@ import {
   formSuccessBigLabel
 } from "../../../Helpers/Styles/globalStyle";
 import CircularProgress from "@material-ui/core/CircularProgress";
+import FormControl from "@material-ui/core/FormControl";
+import InputLabel from "@material-ui/core/InputLabel";
 
-const namesItems = [
-  { label: "Damian", value: 1 },
-  { label: "Marek", value: 2 },
-  { label: "Nina", value: 3 }
-];
-const typesItems = [
-  { label: "Kartkówka", value: 1 },
-  { label: "Sprawdzian", value: 2 },
-  { label: "Odp. ustna", value: 3 }
-];
 class MarksAddForm extends Component {
   constructor(props) {
     super(props);
@@ -36,11 +28,8 @@ class MarksAddForm extends Component {
           type: "text",
           label: "Ocena",
           style: { width: "100%" },
-          formcontrolprops: { style: { width: "100%" } },
-          students: props.students,
-          markForms: props.markForms
-        },
-        ,
+          formcontrolprops: { style: { width: "100%" } }
+        }
       ],
       formValues: {
         studentId: null,
@@ -51,9 +40,50 @@ class MarksAddForm extends Component {
       error: false,
       afterRegisterError: null,
       afterRegisterMsg: null,
-      shouldCheck: false
+      shouldCheck: false,
+      filteredMarkForms: null,
+      students: props.students,
+      markForms: props.markForms
     };
+
+    console.log(this.state);
   }
+
+  filterMarkForm = (students, markForms) => {
+    if (students && markForms && this.state.formValues.studentId) {
+      let activeStudent = null;
+      students["hydra:member"].forEach(el => {
+        if (el.id === this.state.formValues.studentId) activeStudent = el;
+      });
+
+      let studentsMarkForms = [];
+      activeStudent.marks.forEach(mark => {
+        studentsMarkForms.push(mark.markformId);
+      });
+
+      let intersection = markForms["hydra:member"].filter(
+        x => !studentsMarkForms.includes(x["@id"])
+      );
+
+      let markFormFiltered = [];
+      intersection.forEach(inter => {
+        markForms["hydra:member"].forEach(markform => {
+          console.log(inter, markform["@id"]);
+          if (
+            markform["@id"].replace('"', "") === inter["@id"].replace('"', "")
+          )
+            markFormFiltered.push(markform);
+        });
+      });
+      console.log(markFormFiltered);
+      return markFormFiltered;
+    } else {
+      console.log(students, markForms, this.state.formValues.studentId);
+      return [];
+    }
+
+    // return marksArr;
+  };
 
   tmpFunc = () => {
     console.log(this.state);
@@ -130,42 +160,55 @@ class MarksAddForm extends Component {
               );
             })}
             <Grid item xs={12} md={12} lg={12}>
-              <Select
-                fullWidth
-                value={this.state.formValues.studentId}
-                onChange={this.fieldChangeHandler}
-                name={"studentId"}
-              >
-                {this.props.students &&
-                  this.props.students["hydra:member"].map(el => {
-                    return (
-                      <MenuItem key={el.id} value={el.id}>
-                        {el.name} {el.surname}
-                      </MenuItem>
-                    );
-                  })}
-              </Select>
+              <FormControl style={{ width: "100%" }}>
+                <InputLabel id="demo-simple-select-label">Student</InputLabel>
+                <Select
+                  fullWidth
+                  value={this.state.formValues.studentId}
+                  onChange={this.fieldChangeHandler}
+                  name={"studentId"}
+                >
+                  {this.props.students &&
+                    this.props.students["hydra:member"].map(el => {
+                      return (
+                        <MenuItem key={el.id} value={el.id}>
+                          {el.name} {el.surname}
+                        </MenuItem>
+                      );
+                    })}
+                </Select>
+              </FormControl>
             </Grid>
             <Grid item xs={12} md={12} lg={12}>
-              <Select
-                fullWidth
-                value={this.state.formValues.markFormId}
-                onChange={this.fieldChangeHandler}
-                name={"markFormId"}
-              >
-                {this.props.markForms &&
-                  this.props.markForms["hydra:member"].map(el => {
-                    return (
-                      <MenuItem key={el.id} value={el.id}>
-                        {el.name}
-                      </MenuItem>
-                    );
-                  })}
-              </Select>
+              <FormControl style={{ width: "100%" }}>
+                <InputLabel id="demo-simple-select-label">
+                  Forma sprawdzania
+                </InputLabel>
+                <Select
+                  fullWidth
+                  value={this.state.formValues.markFormId}
+                  onChange={this.fieldChangeHandler}
+                  name={"markFormId"}
+                >
+                  {this.state.markForms &&
+                    this.state.students &&
+                    this.state.formValues.studentId &&
+                    this.filterMarkForm(
+                      this.state.students,
+                      this.state.markForms
+                    ).map(el => {
+                      return (
+                        <MenuItem key={el.id} value={el.id}>
+                          {el.name}
+                        </MenuItem>
+                      );
+                    })}
+                </Select>
+              </FormControl>
             </Grid>
           </Grid>
         </div>
-        <div style={{ margin: "0 auto", textAlign: "center" }}>
+        <div style={{ margin: "15px auto", textAlign: "center" }}>
           <Button variant="contained" color="primary" onClick={this.markAdd}>
             Dodaj ocene
           </Button>

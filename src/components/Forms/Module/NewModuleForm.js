@@ -61,9 +61,10 @@ class NewModuleForm extends Component {
             className: this.state.formValues.group_name,
             startDate: this.state.formValues.start_date,
             teacherId: `api/teachers/${localStorage.getItem("s_userid")}`,
-            AverageTypeId: `/api/average_types/${this.state.formValues.average_type}`
+            averageTypeId: `/api/average_types/${this.state.formValues.average_type}`
           },
           () => {
+            this.props.callback();
             this.setState({
               ...this.state,
               afterRegisterError: null,
@@ -247,20 +248,27 @@ class NewModuleForm extends Component {
               </div>
             </MuiPickersUtilsProvider>
           </Grid>
-          {this.state.loading ? (
+          <Grid
+            container
+            justify="center"
+            alignContent="center"
+            alignItems="center"
+          >
+            {this.state.loading ? (
+              <Grid item xs={12} md={12} lg={12}>
+                <CircularProgress color="secondary" />
+              </Grid>
+            ) : null}
             <Grid item xs={12} md={12} lg={12}>
-              <CircularProgress color="secondary" />
+              <span style={formErrorBigLabel}>
+                {this.state.afterRegisterError}
+              </span>
             </Grid>
-          ) : null}
-          <Grid item xs={12} md={12} lg={12}>
-            <span style={formErrorBigLabel}>
-              {this.state.afterRegisterError}
-            </span>
-          </Grid>
-          <Grid item xs={12} md={12} lg={12}>
-            <span style={formSuccessBigLabel}>
-              {this.state.afterRegisterMsg}
-            </span>
+            <Grid item xs={12} md={12} lg={12}>
+              <span style={formSuccessBigLabel}>
+                {this.state.afterRegisterMsg}
+              </span>
+            </Grid>
           </Grid>
 
           <Grid item xs={12} md={10} lg={8}>
