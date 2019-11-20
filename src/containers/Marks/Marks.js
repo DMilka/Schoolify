@@ -26,6 +26,7 @@ class Marks extends Component {
       dialogOpen: false,
       content: "mark",
       avgType: props.location.state.module.averageTypeId.type,
+      finishModule: props.location.state.module.endDate,
       loading: true,
       editedMark: null,
       editedMarkDialog: false,
@@ -184,8 +185,65 @@ class Marks extends Component {
         cells.push(cell);
       });
 
+      if (this.state.finishModule) {
+        cell = this.createLastMark(marks, marksTypes);
+        cells.push(cell);
+      }
+
       return cells;
     }
+  };
+
+  markHelper = (number, roundto) => {
+    return roundto * Math.round(number / roundto);
+  };
+
+  createLastMark = (marks, marksTypes) => {
+    let cell = null;
+
+    if (this.state.finishModule) {
+      if (this.state.avgType === "ar_avg") {
+        let sum = 0;
+        let divider = 0;
+        marks.forEach(mark => {
+          if (mark.value) {
+            sum += mark.value;
+            divider++;
+          }
+        });
+        if (divider > 0) {
+          cell = (
+            <TableCell align="center">
+              {this.markHelper(sum / divider, 0.5)}
+            </TableCell>
+          );
+        }
+      }
+
+      if (this.state.avgType === "we_avg") {
+        let gora = 0;
+        let dol = 0;
+
+        marksTypes["hydra:member"].forEach(markType => {
+          marks.forEach(mark => {
+            if (mark.value && markType["@id"] === mark.markformId) {
+              gora += mark.value * markType.avgValue;
+              dol += markType.avgValue;
+            }
+          });
+        });
+
+        if (dol > 0) {
+          cell = (
+            <TableCell align="center">
+              {this.markHelper(gora / dol, 0.5)}
+            </TableCell>
+          );
+        }
+      }
+    }
+
+    return cell;
   };
 
   createBody = (students, formTypes) => {
@@ -218,12 +276,18 @@ class Marks extends Component {
           </TableCell>
         );
       });
+
+      if (this.state.finishModule) {
+        headers.push(<TableCell align="center">Ocena końcowa</TableCell>);
+      }
     } else {
       return <TableCell align="center">Brak danych</TableCell>;
     }
 
     return headers;
   };
+
+  finishModule = () => {};
 
   render() {
     console.log(this.state);
@@ -241,19 +305,33 @@ class Marks extends Component {
             </Button>
           }
         />
-        <MarksJournalActions
-          onClickHandler={this.createContent}
-          avgType={this.state.avgType}
-          students={this.state.students}
-          markForms={this.state.markForms}
-          toggleEditMode={this.toggleEditMode}
-        />
+        {!this.state.finishModule && (
+          <MarksJournalActions
+            onClickHandler={this.createContent}
+            avgType={this.state.avgType}
+            students={this.state.students}
+            markForms={this.state.markForms}
+            toggleEditMode={this.toggleEditMode}
+            finishModule={this.finishModule}
+          />
+        )}
+
         <JournalTable
           body={this.createBody(this.state.students, this.state.markForms)}
           headers={this.createHeaders(this.state.markForms)}
         />
         <DialogTemplate
           open={this.state.editedMarkDialog}
+          content={<MarkEditForm mark={this.state.editedMark} />}
+          onClose={this.closeDialogHandler}
+          actionButtons={
+            <Button color="secondary" onClick={this.closeDialogHandler}>
+              Zamknij
+            </Button>
+          }
+        />
+        <DialogTemplate
+          open={this.state.finishModuleD}
           content={<MarkEditForm mark={this.state.editedMark} />}
           onClose={this.closeDialogHandler}
           actionButtons={

@@ -40,7 +40,8 @@ class Dashboard extends Component {
       successMsg: null,
       warningMsg: null,
       data: null,
-      redirectToMarks: false
+      redirectToMarks: false,
+      finishModule: false
     };
   }
 
@@ -134,17 +135,22 @@ class Dashboard extends Component {
       ...this.state,
       redirectToMarks: true,
       moduleId: module.id,
-      module: module
+      module: module,
+      finishModule: module.endDate ? true : false
     });
   };
 
   render() {
+    console.log(this.state);
     if (this.state.redirectToMarks) {
       return (
         <Redirect
           to={{
             pathname: "/module",
-            state: { module: this.state.module }
+            state: {
+              module: this.state.module,
+              finishModule: this.state.finishModule
+            }
           }}
         />
       );
@@ -207,13 +213,6 @@ class Dashboard extends Component {
                             >
                               <DeleteIcon />
                             </IconButton>
-                            <IconButton
-                              variant="contained"
-                              color="secondary"
-                              onClick={() => {}}
-                            >
-                              <DoneIcon />
-                            </IconButton>
                           </TableCell>
                         </TableRow>
                       ))}
@@ -223,18 +222,17 @@ class Dashboard extends Component {
             </Grid>
           )}
         </Grid>
+
         <DialogTemplate
           open={this.state.open}
           onClose={this.addModuleToggleHandler}
           TransitionComponent={Transition}
-
           title={"Dodaj nowy moduł"}
           content={<NewModuleForm callback={this.init} />}
         />
         <DialogTemplate
           open={this.state.delete}
           TransitionComponent={Transition}
-
           onClose={this.confirmDeleteHandler}
           title={"Czy napewno usunąć"}
           actionButtons={

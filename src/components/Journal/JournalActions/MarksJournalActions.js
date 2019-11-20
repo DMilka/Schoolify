@@ -60,6 +60,13 @@ class MarksJournalActions extends Component {
         >
           Tryb edycji
         </Button>
+        <Button
+          color="primary"
+          variant="contained"
+          onClick={this.props.finishModule}
+        >
+          Zakończ moduł
+        </Button>
       </div>
     );
   }

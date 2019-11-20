@@ -498,10 +498,13 @@ class Attendance extends Component {
           <div>Loading...</div>
         ) : (
           <React.Fragment>
-            <AttendanceJournalActions
-              onClickHandler={this.createContent}
-              param={students}
-            />
+            {!this.props.finishedModule && (
+              <AttendanceJournalActions
+                onClickHandler={this.createContent}
+                param={students}
+              />
+            )}
+
             <JournalTable
               body={this.createBody(
                 this.state.students,
