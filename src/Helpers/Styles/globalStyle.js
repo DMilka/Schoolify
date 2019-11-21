@@ -3,6 +3,7 @@ export const formErrorLabel = {
   color: 'red',
   display: 'block',
   margin: '5px auto',
+  textAlign: 'center',
 };
 
 export const formErrorBigLabel = {
@@ -10,6 +11,7 @@ export const formErrorBigLabel = {
   color: 'red',
   display: 'block',
   margin: '5px auto',
+  textAlign: 'center',
 };
 
 export const formSuccessBigLabel = {
@@ -17,4 +19,5 @@ export const formSuccessBigLabel = {
   color: 'green',
   display: 'block',
   margin: '5px auto',
+  textAlign: 'center',
 };

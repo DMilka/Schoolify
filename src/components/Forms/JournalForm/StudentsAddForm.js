@@ -1,25 +1,22 @@
-import React, { Component } from "react";
-import { formBuilder } from "../../../Helpers/FormBuilder/formBuilder";
-import Grid from "@material-ui/core/Grid";
-import Button from "@material-ui/core/Button";
-import Select from "@material-ui/core/Select";
-import MenuItem from "@material-ui/core/MenuItem";
-import { post } from "../../../Helpers/Auth/ApiCalls";
-import {
-  formErrorLabel,
-  formErrorBigLabel,
-  formSuccessBigLabel
-} from "../../../Helpers/Styles/globalStyle";
+import React, { Component } from 'react';
+import { formBuilder } from '../../../Helpers/FormBuilder/formBuilder';
+import Grid from '@material-ui/core/Grid';
+import Button from '@material-ui/core/Button';
+import Select from '@material-ui/core/Select';
+import MenuItem from '@material-ui/core/MenuItem';
+import { post } from '../../../Helpers/Auth/ApiCalls';
+import CircularProgress from '@material-ui/core/CircularProgress';
+import { formErrorLabel, formErrorBigLabel, formSuccessBigLabel } from '../../../Helpers/Styles/globalStyle';
 
 const namesItems = [
-  { label: "Damian", value: 1 },
-  { label: "Marek", value: 2 },
-  { label: "Nina", value: 3 }
+  { label: 'Damian', value: 1 },
+  { label: 'Marek', value: 2 },
+  { label: 'Nina', value: 3 },
 ];
 const typesItems = [
-  { label: "Kartkówka", value: 1 },
-  { label: "Sprawdzian", value: 2 },
-  { label: "Odp. ustna", value: 3 }
+  { label: 'Kartkówka', value: 1 },
+  { label: 'Sprawdzian', value: 2 },
+  { label: 'Odp. ustna', value: 3 },
 ];
 class MarksAddForm extends Component {
   constructor(props) {
@@ -27,10 +24,13 @@ class MarksAddForm extends Component {
 
     this.state = {
       form: [
-        { id: "name", name: "name", type: "text", label: "Imię" },
-        { id: "surname", name: "surname", type: "text", label: "Nazwisko" }
+        { id: 'name', name: 'name', type: 'text', label: 'Imię' },
+        { id: 'surname', name: 'surname', type: 'text', label: 'Nazwisko' },
       ],
-      formValues: {}
+      formValues: {},
+      loading: false,
+      afterRegisterMsg: null,
+      afterRegisterError: null,
     };
   }
 
@@ -39,8 +39,8 @@ class MarksAddForm extends Component {
       ...this.state,
       formValues: {
         ...this.state.formValues,
-        moduleId: `/api/modules/${localStorage.getItem("s_moduleId")}`
-      }
+        moduleId: `/api/modules/${localStorage.getItem('s_moduleId')}`,
+      },
     });
   }
 
@@ -48,48 +48,52 @@ class MarksAddForm extends Component {
     console.log(this.state);
   };
 
-  fieldChangeHandler = e => {
+  fieldChangeHandler = (e) => {
     const value = e.target.value;
     this.setState(
       {
         ...this.state,
         formValues: {
           ...this.state.formValues,
-          [e.target.name]: value
-        }
+          [e.target.name]: value,
+        },
       },
       this.tmpFunc
     );
   };
 
   addStudent = () => {
+    this.setState({
+      ...this.state,
+      loading: true,
+      afterRegisterMsg: null,
+      afterRegisterError: null,
+    });
     post(
-      "http://localhost:8000/api/students",
+      'http://localhost:8000/api/students',
       {
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods":
-          "GET, POST, PATCH, PUT, DELETE, OPTIONS",
-        "Access-Control-Allow-Headers":
-          "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization"
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, PATCH, PUT, DELETE, OPTIONS',
+        'Access-Control-Allow-Headers': 'Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization',
       },
       {
-        ...this.state.formValues
+        ...this.state.formValues,
       },
       () => {
         this.setState({
           ...this.state,
           afterRegisterError: null,
           loading: false,
-          afterRegisterMsg: "Pomyślnie dodano studenta"
+          afterRegisterMsg: 'Pomyślnie dodano studenta',
         });
       },
       () => {
         this.setState({
           ...this.state,
-          afterRegisterError: "Wystąpił nieoczekiwany problem",
+          afterRegisterError: 'Wystąpił nieoczekiwany problem',
           loading: false,
-          afterRegisterMsg: null
+          afterRegisterMsg: null,
         });
       }
     );
@@ -98,7 +102,7 @@ class MarksAddForm extends Component {
   render() {
     return (
       <form autoComplete="off" onChange={this.fieldChangeHandler}>
-        <div style={{ flexGrow: 1, minWidth: "300px", minHeight: "200px" }}>
+        <div style={{ flexGrow: 1, minWidth: '300px', minHeight: '200px' }}>
           <Grid container spacing={3}>
             {formBuilder(this.state.form).map((el, indx) => {
               return (
@@ -110,19 +114,27 @@ class MarksAddForm extends Component {
           </Grid>
         </div>
 
-        <Grid container>
-          <Grid item xs={12} md={12} lg={12}>
-            <span style={formErrorBigLabel}>
-              {this.state.afterRegisterError}
-            </span>
-          </Grid>
-          <Grid item xs={12} md={12} lg={12}>
-            <span style={formSuccessBigLabel}>
-              {this.state.afterRegisterMsg}
-            </span>
-          </Grid>
+        <Grid container justify="center" alignContent="center" alignItems="center">
+          <div style={{ display: 'flex', justifyContent: 'center' }}>
+            {this.state.loading ? (
+              <Grid item xs={12} md={12} lg={12}>
+                <CircularProgress color="secondary" />
+              </Grid>
+            ) : null}
+            {this.state.afterRegisterError && (
+              <Grid item xs={12} md={12} lg={12}>
+                <span style={formErrorBigLabel}>{this.state.afterRegisterError}</span>
+              </Grid>
+            )}
+            {this.state.afterRegisterMsg && (
+              <Grid item xs={12} md={12} lg={12}>
+                <span style={formSuccessBigLabel}>{this.state.afterRegisterMsg}</span>
+              </Grid>
+            )}
+          </div>
         </Grid>
-        <div style={{ margin: "0 auto", textAlign: "center" }}>
+
+        <div style={{ margin: '0 auto', textAlign: 'center' }}>
           <Button variant="contained" color="primary" onClick={this.addStudent}>
             Dodaj studenta
           </Button>
